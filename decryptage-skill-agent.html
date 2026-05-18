@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Décryptage du Skill et de l'Agent | Web Architect</title>
+<style>
+  :root {
+    --bg: #171412;
+    --surface: #26211F;
+    --surface2: #1f1b19;
+    --primary: #A2BC57;
+    --cta: #F76800;
+    --text: #FFFFFF;
+    --muted: rgba(255,255,255,0.65);
+    --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    --mono: "Courier New", Courier, monospace;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0;
+    background: #100e0c;
+    border-bottom: 2px solid var(--primary);
+    z-index: 100;
+    padding: 0 2rem;
+    display: flex; align-items: center; gap: 0;
+    overflow-x: auto;
+  }
+  .nav-brand {
+    color: var(--primary); font-weight: 700; font-size: 0.85rem;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    white-space: nowrap; padding: 1rem 1.2rem 1rem 0;
+    border-right: 1px solid #3a3330; margin-right: 1rem; flex-shrink: 0;
+  }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 0.82rem;
+    padding: 1rem 0.8rem; white-space: nowrap;
+    border-bottom: 2px solid transparent; transition: color 0.2s;
+  }
+  nav a:hover { color: var(--text); }
+  nav a.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* HERO */
+  .hero {
+    max-width: 900px; margin: 0 auto;
+    padding: 3.5rem 2rem 2.5rem;
+  }
+  .hero-tag {
+    display: inline-block; background: var(--cta); color: #fff;
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; padding: 0.28rem 0.75rem; border-radius: 3px;
+    margin-bottom: 1rem;
+  }
+  h1 {
+    font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800;
+    color: var(--primary); line-height: 1.2; margin-bottom: 0.8rem;
+  }
+  .hero-sub {
+    color: var(--muted); font-size: 1rem; max-width: 620px; margin-bottom: 1.5rem;
+  }
+  .hero-meta {
+    display: flex; gap: 1rem; flex-wrap: wrap;
+  }
+  .meta-pill {
+    background: var(--surface); border: 1px solid #3a3330;
+    border-radius: 4px; padding: 0.35rem 0.8rem;
+    font-size: 0.78rem; color: var(--muted);
+  }
+  .meta-pill strong { color: var(--primary); }
+
+  /* SECTION */
+  section {
+    max-width: 900px; margin: 0 auto;
+    padding: 2.5rem 2rem;
+    border-bottom: 1px solid #26211F;
+  }
+  h2 {
+    font-size: 1.5rem; color: var(--primary); font-weight: 700;
+    margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.6rem;
+  }
+  .num {
+    background: var(--primary); color: #171412;
+    font-size: 0.8rem; font-weight: 800;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .section-intro { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; max-width: 680px; }
+  h3 {
+    font-size: 1.05rem; color: var(--text); font-weight: 600;
+    margin: 2rem 0 0.8rem;
+    padding-left: 0.9rem; border-left: 3px solid var(--primary);
+  }
+  p { color: var(--text); margin-bottom: 0.9rem; }
+
+  /* ANNOTATED BLOCK */
+  .annotated {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid #3a3330;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 1.5rem 0;
+    font-size: 0.85rem;
+  }
+  @media(max-width:680px) { .annotated { grid-template-columns: 1fr; } }
+  .annotated-code {
+    background: #0a0907;
+    padding: 0;
+    border-right: 1px solid #3a3330;
+    overflow-x: auto;
+  }
+  @media(max-width:680px) { .annotated-code { border-right: none; border-bottom: 1px solid #3a3330; } }
+  .annotated-header {
+    background: var(--surface); padding: 0.5rem 1rem;
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; border-bottom: 1px solid #3a3330;
+  }
+  .annotated-header.code-h { color: var(--primary); }
+  .annotated-header.note-h { color: var(--cta); }
+  .annotated-body { padding: 1rem 1.2rem; }
+  .annotated-notes { background: var(--surface2); }
+  pre {
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.65;
+    color: #d4d0cb; white-space: pre-wrap; word-break: break-word;
+  }
+  .hl-k { color: var(--primary); font-weight: 600; }
+  .hl-s { color: #f0a050; }
+  .hl-c { color: #5a5450; font-style: italic; }
+  .hl-cta { color: var(--cta); font-weight: 600; }
+  .hl-warn { color: #ffcc44; }
+
+  /* NOTES LIST */
+  .notes-list { list-style: none; }
+  .notes-list li {
+    display: flex; gap: 0.7rem; align-items: flex-start;
+    padding: 0.65rem 0;
+    border-bottom: 1px solid #3a3330;
+    font-size: 0.85rem;
+  }
+  .notes-list li:last-child { border-bottom: none; }
+  .note-icon {
+    width: 22px; height: 22px; border-radius: 4px;
+    font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .ni-role { background: var(--primary); color: #171412; }
+  .ni-why  { background: #1f3a6e; color: #7ab4f5; }
+  .ni-warn { background: #4a2800; color: var(--cta); }
+  .ni-tip  { background: #1a2a00; color: var(--primary); }
+  .note-text { color: var(--muted); flex: 1; line-height: 1.5; }
+  .note-text strong { color: var(--text); }
+
+  /* CALLOUT */
+  .callout {
+    background: var(--surface); border-left: 4px solid var(--cta);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 1.1rem 1.3rem; margin: 1.4rem 0;
+    display: flex; gap: 0.8rem; align-items: flex-start;
+    font-size: 0.88rem;
+  }
+  .callout.tip { border-left-color: var(--primary); }
+  .callout p { margin: 0; color: var(--muted); }
+  .callout p strong { color: var(--text); }
+  .ci { font-size: 1.2rem; flex-shrink: 0; }
+
+  /* DIFF TABLE */
+  .diff-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0;
+  }
+  @media(max-width:600px) { .diff-grid { grid-template-columns: 1fr; } }
+  .diff-card {
+    background: var(--surface); border: 1px solid #3a3330;
+    border-radius: var(--radius); padding: 1.1rem;
+  }
+  .diff-title {
+    font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; margin-bottom: 0.7rem; padding-bottom: 0.5rem;
+    border-bottom: 1px solid #3a3330;
+  }
+  .diff-title.skill-t { color: var(--primary); }
+  .diff-title.agent-t { color: var(--cta); }
+  .diff-card ul { list-style: none; font-size: 0.85rem; }
+  .diff-card ul li { color: var(--muted); padding: 0.3rem 0; display: flex; gap: 0.5rem; }
+  .diff-card ul li::before { content: "→"; color: var(--primary); flex-shrink: 0; }
+  .diff-card.agent-c ul li::before { color: var(--cta); }
+
+  /* PRINCIPE CARDS */
+  .principe-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem; margin: 1.2rem 0;
+  }
+  .principe-card {
+    background: var(--surface); border: 1px solid #3a3330;
+    border-radius: var(--radius); padding: 1.1rem;
+  }
+  .principe-num {
+    font-size: 2rem; font-weight: 800; color: #3a3330;
+    line-height: 1; margin-bottom: 0.4rem;
+  }
+  .principe-title { color: var(--primary); font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem; }
+  .principe-body { color: var(--muted); font-size: 0.83rem; line-height: 1.5; }
+
+  /* SCHEMA SVG */
+  .schema-wrap {
+    background: var(--surface); border: 1px solid #3a3330;
+    border-radius: var(--radius); padding: 1.2rem; margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+  .schema-title {
+    font-size: 0.75rem; font-weight: 700; color: var(--primary);
+    text-transform: uppercase; letter-spacing: 0.09em;
+    margin-bottom: 1rem; text-align: center;
+  }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: 0.86rem; }
+  th { background: #26211F; color: var(--primary); text-align: left; padding: 0.65rem 1rem; font-weight: 600; border-bottom: 2px solid var(--primary); }
+  td { padding: 0.6rem 1rem; border-bottom: 1px solid #26211F; color: var(--text); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* TAG INLINE */
+  .tag {
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 0.15rem 0.45rem; border-radius: 3px; margin-left: 0.3rem;
+    vertical-align: middle;
+  }
+  .tag-role { background: #1A2A00; color: var(--primary); }
+  .tag-why  { background: #0e1f3a; color: #7ab4f5; }
+  .tag-warn { background: #3a1200; color: var(--cta); }
+  .tag-opt  { background: #2a2a2a; color: #888; }
+
+  /* FOOTER */
+  footer {
+    background: #100e0c; border-top: 2px solid var(--primary);
+    padding: 1.8rem; text-align: center;
+  }
+  footer .fb { color: var(--primary); font-weight: 700; font-size: 1rem; margin-bottom: 0.3rem; }
+  footer .fs { color: var(--muted); font-size: 0.78rem; }
+  footer .fbase { color: var(--muted); font-size: 0.72rem; margin-top: 0.4rem; font-style: italic; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Web Architect</div>
+  <a href="#intro">Vue d'ensemble</a>
+  <a href="#frontmatter">Frontmatter</a>
+  <a href="#corps-skill">Corps du skill</a>
+  <a href="#system-prompt">System prompt</a>
+  <a href="#interaction">Interaction</a>
+  <a href="#erreurs">Erreurs types</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-tag">Décryptage complet</span>
+  <h1>Comprendre le Skill et l'Agent<br>ligne par ligne</h1>
+  <p class="hero-sub">Chaque élément du SKILL.md et du system prompt expliqué : son rôle, pourquoi il est écrit ainsi, ce qui change si on le supprime.</p>
+  <div class="hero-meta">
+    <span class="meta-pill"><strong>Niveau :</strong> Débutant à intermédiaire</span>
+    <span class="meta-pill"><strong>Durée de lecture :</strong> 20 à 30 min</span>
+    <span class="meta-pill"><strong>Prérequis :</strong> Avoir lu le tutoriel de base</span>
+  </div>
+</div>
+
+<!-- ===== SECTION 0 : VUE D'ENSEMBLE ===== -->
+<section id="intro">
+  <h2><span class="num">0</span> Vue d'ensemble : deux fichiers, deux rôles</h2>
+  <p class="section-intro">Avant de décortiquer chaque ligne, comprendre ce que fait chaque fichier et pourquoi ils sont séparés.</p>
+
+  <div class="diff-grid">
+    <div class="diff-card">
+      <div class="diff-title skill-t">SKILL.md - Le "manuel de procédures"</div>
+      <ul>
+        <li>Dit à Claude <strong>quoi faire</strong> et <strong>comment le faire</strong></li>
+        <li>Contient les structures de documents</li>
+        <li>Donne le vocabulaire métier exact</li>
+        <li>Précise les règles légales applicables</li>
+        <li>Se déclenche automatiquement selon les mots-clés</li>
+        <li>Réutilisable dans n'importe quel contexte</li>
+      </ul>
+    </div>
+    <div class="diff-card agent-c">
+      <div class="diff-title agent-t">System prompt - La "fiche de poste"</div>
+      <ul>
+        <li>Dit à Claude <strong>qui il est</strong> dans ce contexte</li>
+        <li>Définit le ton et le style de communication</li>
+        <li>Fixe les limites (ce qu'il ne fait pas)</li>
+        <li>Précise le public cible et les relations</li>
+        <li>Reste actif toute la conversation</li>
+        <li>Spécifique au Projet Claude créé</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SCHEMA DE LECTURE -->
+  <div class="schema-wrap">
+    <div class="schema-title">Comment Claude lit ces deux fichiers avant de répondre</div>
+    <svg viewBox="0 0 820 160" width="100%" style="max-height:160px" xmlns="http://www.w3.org/2000/svg">
+      <rect width="820" height="160" fill="#0a0907" rx="6"/>
+      <defs>
+        <marker id="arr" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L5,3 L0,6Z" fill="#A2BC57"/>
+        </marker>
+      </defs>
+
+      <!-- Question animateur -->
+      <rect x="16" y="54" width="130" height="52" rx="6" fill="#26211F" stroke="#3a3330" stroke-width="1.5"/>
+      <text x="81" y="78" fill="#d4d0cb" font-family="Helvetica Neue,sans-serif" font-size="11" font-weight="600" text-anchor="middle">Animateur écrit</text>
+      <text x="81" y="94" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="10" text-anchor="middle">"fiche séance..."</text>
+
+      <path d="M148 80 L176 80" stroke="#A2BC57" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Lecture 1 : Frontmatter -->
+      <rect x="178" y="24" width="140" height="112" rx="6" fill="#1A2A00" stroke="#A2BC57" stroke-width="1.5"/>
+      <text x="248" y="46" fill="#A2BC57" font-family="Helvetica Neue,sans-serif" font-size="10" font-weight="700" text-anchor="middle">1. Frontmatter</text>
+      <text x="248" y="60" fill="#A2BC57" font-family="Helvetica Neue,sans-serif" font-size="10" font-weight="700" text-anchor="middle">du SKILL.md</text>
+      <text x="248" y="80" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">Correspond aux</text>
+      <text x="248" y="93" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">mots-clés ?</text>
+      <text x="248" y="118" fill="#A2BC57" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">OUI → charge le skill</text>
+      <text x="248" y="130" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">NON → passe</text>
+
+      <path d="M320 80 L348 80" stroke="#A2BC57" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- Lecture 2 : Corps skill -->
+      <rect x="350" y="24" width="140" height="112" rx="6" fill="#1A2A00" stroke="#A2BC57" stroke-width="1.5"/>
+      <text x="420" y="46" fill="#A2BC57" font-family="Helvetica Neue,sans-serif" font-size="10" font-weight="700" text-anchor="middle">2. Corps du</text>
+      <text x="420" y="58" fill="#A2BC57" font-family="Helvetica Neue,sans-serif" font-size="10" font-weight="700" text-anchor="middle">SKILL.md</text>
+      <text x="420" y="78" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">Structures types,</text>
+      <text x="420" y="91" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">vocabulaire, légal,</text>
+      <text x="420" y="104" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">format de sortie</text>
+      <text x="420" y="125" fill="#A2BC57" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">Lu intégralement</text>
+
+      <path d="M492 80 L520 80" stroke="#F76800" stroke-width="1.5" marker-end="url(#arr2)"/>
+      <defs>
+        <marker id="arr2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L5,3 L0,6Z" fill="#F76800"/>
+        </marker>
+      </defs>
+
+      <!-- Lecture 3 : System prompt -->
+      <rect x="522" y="24" width="140" height="112" rx="6" fill="#1F1008" stroke="#F76800" stroke-width="1.5"/>
+      <text x="592" y="46" fill="#F76800" font-family="Helvetica Neue,sans-serif" font-size="10" font-weight="700" text-anchor="middle">3. System prompt</text>
+      <text x="592" y="58" fill="#F76800" font-family="Helvetica Neue,sans-serif" font-size="10" font-weight="700" text-anchor="middle">de l'agent</text>
+      <text x="592" y="78" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">Rôle, ton, limites,</text>
+      <text x="592" y="91" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">style, cadre légal,</text>
+      <text x="592" y="104" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">comportements</text>
+      <text x="592" y="125" fill="#F76800" font-family="Helvetica Neue,sans-serif" font-size="9" text-anchor="middle">Toujours actif</text>
+
+      <path d="M664 80 L692 80" stroke="#888" stroke-width="1.5" marker-end="url(#arr3)"/>
+      <defs>
+        <marker id="arr3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto">
+          <path d="M0,0 L5,3 L0,6Z" fill="#888"/>
+        </marker>
+      </defs>
+
+      <!-- Réponse -->
+      <rect x="694" y="40" width="110" height="80" rx="6" fill="#26211F" stroke="#4daacc" stroke-width="1.5"/>
+      <text x="749" y="76" fill="#4daacc" font-family="Helvetica Neue,sans-serif" font-size="11" font-weight="600" text-anchor="middle">Réponse</text>
+      <text x="749" y="92" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="10" text-anchor="middle">générée</text>
+      <text x="749" y="108" fill="#6b6660" font-family="Helvetica Neue,sans-serif" font-size="10" text-anchor="middle">et contextualisée</text>
+    </svg>
+  </div>
+
+  <div class="callout tip">
+    <span class="ci">💡</span>
+    <p><strong>A retenir :</strong> Le frontmatter décide si le skill est activé (déclencheur). Le corps du skill dit comment travailler (méthode). Le system prompt dit qui on est (identité). Claude combine les trois pour chaque réponse.</p>
+  </div>
+</section>
+
+<!-- ===== SECTION 1 : FRONTMATTER ===== -->
+<section id="frontmatter">
+  <h2><span class="num">1</span> Le Frontmatter : le déclencheur automatique</h2>
+  <p class="section-intro">Les premières lignes entre les "---" sont les plus importantes du fichier. C'est ici que Claude décide d'utiliser ou non le skill. Une mauvaise description = le skill ne se déclenche jamais.</p>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Frontmatter complet</div>
+      <div class="annotated-body">
+        <pre><span class="hl-c">---</span>
+<span class="hl-k">name:</span> <span class="hl-s">doc-animateur-jeunesse</span>
+
+<span class="hl-k">description:</span> <span class="hl-s">&gt;</span>
+  <span class="hl-s">Génère des documents professionnels</span>
+  <span class="hl-s">pour les animateurs jeunesse et</span>
+  <span class="hl-s">structures d'animation (ACM, centres</span>
+  <span class="hl-s">sociaux, MJC, ALSH, collectivités,</span>
+  <span class="hl-s">BAFA/BAFD).</span>
+
+  <span class="hl-s">Utilise ce skill dès que la demande</span>
+  <span class="hl-s">porte sur : fiche séance, projet</span>
+  <span class="hl-s">d'animation, compte-rendu de réunion,</span>
+  <span class="hl-s">rapport d'activité, bilan BAFA ou BAFD,</span>
+  <span class="hl-s">projet pédagogique, fiche d'évaluation,</span>
+  <span class="hl-s">note partenariale, planning d'animation,</span>
+  <span class="hl-s">fiche incident ou comportement.</span>
+
+  <span class="hl-cta">Déclenche-toi aussi sur :</span>
+  <span class="hl-s">"rédiger pour mon ACM",</span>
+  <span class="hl-s">"bilan de stage animateur",</span>
+  <span class="hl-s">"projet d'animation clé en mains",</span>
+  <span class="hl-s">"compte-rendu réunion d'équipe",</span>
+  <span class="hl-s">"rapport mensuel animateur",</span>
+  <span class="hl-s">"fiche séance enfants",</span>
+  <span class="hl-s">"projet péda ALSH".</span>
+<span class="hl-c">---</span></pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication de chaque élément</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">NOM</div>
+            <div class="note-text"><strong>name: doc-animateur-jeunesse</strong><br>Identifiant technique du skill. Doit être unique, sans espaces, en minuscules avec tirets. Sert de référence si vous citez le skill dans d'autres fichiers.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>description: &gt;</strong><br>Le ">" indique un texte sur plusieurs lignes en YAML. Sans lui, la description serait coupée à la première ligne.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Première phrase : "Génère des documents..."</strong><br>Résume ce que fait le skill. Claude lit ceci en PREMIER pour savoir si le skill est pertinent. Commencer par un verbe d'action.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>Liste des types de documents</strong><br>Chaque type listé est un mot-clé de déclenchement. Si l'utilisateur écrit "bilan BAFD", Claude reconnaît ce terme et active le skill.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>"Déclenche-toi aussi sur..."</strong><br>Formulations en langage naturel que les utilisateurs emploient vraiment. Ces phrases dites "pushy" compensent la tendance de Claude à ne pas déclencher les skills.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">RISQUE</div>
+            <div class="note-text"><strong>Si la description est trop courte</strong><br>Exemple mauvais : "description: Aide les animateurs". Claude ne déclenchera jamais ce skill, faute de mots-clés suffisants pour le reconnaître.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>Règles d'or pour une bonne description</h3>
+  <div class="principe-grid">
+    <div class="principe-card">
+      <div class="principe-num">01</div>
+      <div class="principe-title">Commencer par un verbe d'action</div>
+      <div class="principe-body">Génère, Rédige, Produit, Aide à créer. Cela signale immédiatement ce que le skill accomplit concrètement.</div>
+    </div>
+    <div class="principe-card">
+      <div class="principe-num">02</div>
+      <div class="principe-title">Lister tous les cas d'usage</div>
+      <div class="principe-body">Chaque type de document ou de demande = un déclencheur potentiel. Plus la liste est riche, plus le skill se déclenche au bon moment.</div>
+    </div>
+    <div class="principe-card">
+      <div class="principe-num">03</div>
+      <div class="principe-title">Inclure le jargon métier</div>
+      <div class="principe-body">ACM, ALSH, BAFA, BAFD doivent être dans la description. Ce sont les mots que les utilisateurs tapent naturellement.</div>
+    </div>
+    <div class="principe-card">
+      <div class="principe-num">04</div>
+      <div class="principe-title">Ajouter des formulations naturelles</div>
+      <div class="principe-body">Les guillemets avec des phrases réelles ("fiche séance enfants") correspondent à ce que les utilisateurs écrivent, pas à un langage formel.</div>
+    </div>
+    <div class="principe-card">
+      <div class="principe-num">05</div>
+      <div class="principe-title">Être explicite sur le déclenchement</div>
+      <div class="principe-body">"Utilise ce skill dès que..." ou "Déclenche-toi aussi sur..." sont des instructions directes. Claude les suit mieux que des formulations passives.</div>
+    </div>
+    <div class="principe-card">
+      <div class="principe-num">06</div>
+      <div class="principe-title">Rester sous 200 mots</div>
+      <div class="principe-body">Le frontmatter est toujours en mémoire. Si il dépasse 200 mots, c'est qu'il contient des informations qui appartiennent plutôt au corps du skill.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 2 : CORPS DU SKILL ===== -->
+<section id="corps-skill">
+  <h2><span class="num">2</span> Le Corps du SKILL.md : la méthode de travail</h2>
+  <p class="section-intro">Une fois le skill déclenché, Claude lit le corps complet. Chaque section joue un rôle précis dans la qualité du document produit.</p>
+
+  <!-- Bloc 2.1 : Section 1 du skill -->
+  <h3>Section 1 : "Identifier le document demandé" (le filtre d'entrée)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Section 1</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## 1. Identifier le document demandé</span>
+
+Avant de rédiger, poser les questions
+essentielles si elles ne sont pas données :
+
+| Question | Pourquoi c'est important |
+|---|---|
+| Type de structure (ACM, MJC...) | Vocabulaire, cadre légal |
+| Tranche d'âge du public | Objectifs adaptés |
+| Thème ou intitulé | Nommer le document |
+| Période concernée | Dates, durée |
+| Destinataire du document | Directeur, familles... |</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>"Avant de rédiger, poser les questions si elles ne sont pas données"</strong><br>Cette phrase est une instruction conditionnelle. Claude pose des questions uniquement si le contexte manque. Si l'utilisateur a tout dit, il rédige directement sans demander.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>Le tableau question / raison</strong><br>Le fait d'expliquer pourquoi chaque information est importante aide Claude à reformuler intelligemment la question selon le contexte. Il ne récite pas le tableau, il s'en inspire.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>Limiter à 2-3 questions max</strong><br>Claude a tendance à poser trop de questions si on ne le cadre pas. La formulation "poser les questions essentielles" signal implicitement qu'il doit prioriser et ne pas tout demander.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">EFFET</div>
+            <div class="note-text"><strong>Sans cette section</strong><br>Claude rédige immédiatement avec des hypothèses. Résultat : une fiche séance pour des inconnus, sans durée, sans matériel adapté. Inutilisable.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc 2.2 : Types de documents -->
+  <h3>Section 2 : "Types de documents" (les gabarits)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Exemple : Fiche séance</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">### A. Fiche séance / Projet d'activité</span>
+
+<span class="hl-warn">Structure obligatoire :</span>
+- Titre de l'activité
+- Objectifs pédagogiques
+  (2 à 4 max, verbes d'action)
+- Public visé + effectif + âge
+- Durée et lieu
+- Matériel nécessaire
+- Déroulement :
+  accueil / mise en activité /
+  temps fort / bilan
+- Évaluation (mesure des objectifs)
+- Animateur(s) référent(s)</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>"Structure obligatoire"</strong><br>Le mot "obligatoire" est important. Il demande à Claude de ne jamais omettre ces champs, même si l'utilisateur n'en parle pas. Sans ce mot, Claude peut "oublier" des sections.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>"2 à 4 max, verbes d'action"</strong><br>Ces contraintes qualitatives sont cruciales. Sans elles, Claude écrit des objectifs vagues comme "sensibiliser à l'écologie" au lieu de "identifier 3 types de déchets recyclables".</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>Les phases de déroulement nommées</strong><br>"accueil / mise en activité / temps fort / bilan" est le découpage standard de l'animation jeunesse. Le nommer dans le skill garantit que Claude utilise le bon vocabulaire professionnel.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">EFFET</div>
+            <div class="note-text"><strong>Si les gabarits sont absents</strong><br>Claude invente sa propre structure. Résultat : variable d'une génération à l'autre, non conforme aux attentes des directeurs ou des organismes de formation.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc 2.2b : Bilan BAFA avec axes -->
+  <h3>Section 2D : "Bilan BAFA" (le cas avec référentiel officiel)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Bilan BAFA</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">### D. Bilan de stage BAFA / BAFD</span>
+
+Structure :
+- Présentation du contexte
+- Missions exercées
+- Compétences développées
+  (<span class="hl-warn">référentiel BAFA/BAFD</span>)
+- Situations significatives
+  (2 à 3 exemples avec analyse)
+- Auto-évaluation
+- Conclusion et perspectives
+
+<span class="hl-warn">Référentiel BAFA — 4 axes :</span>
+1. Vivre en collectivité
+2. Animer et mettre en oeuvre
+   un projet d'animation
+3. Assurer la sécurité physique,
+   morale et affective
+4. Participer au fonctionnement
+   et enrichir la vie de l'équipe</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Les 4 axes du référentiel BAFA</strong><br>Ces axes sont officiels (DJEPVA). Les inscrire dans le skill empêche Claude d'inventer d'autres axes ou d'en oublier. Le bilan généré sera reconnu par les organismes de formation.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>"Situations significatives (2 à 3)"</strong><br>La limite quantitative est intentionnelle. Sans elle, Claude en génère 6 ou 8, ce qui dépasse la taille attendue par les formateurs BAFA.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>"avec analyse"</strong><br>Ce mot clé force Claude à ne pas seulement décrire les situations mais à les analyser (Qu'ai-je appris ? Comment j'aurais pu faire autrement ?). C'est la valeur ajoutée du bilan.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">RISQUE</div>
+            <div class="note-text"><strong>Hallucination sur le légal</strong><br>Sans les axes officiels dans le skill, Claude peut "inventer" des axes plausibles mais faux. Un formateur BAFA les repérerait immédiatement.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc 2.3 : Fiche incident -->
+  <h3>Section 2H : "Fiche incident" (le cas sensible)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Fiche incident</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">### H. Fiche incident / rapport de comportement</span>
+
+Structure :
+- Date, heure, lieu
+- Personnes impliquées
+  (<span class="hl-warn">sans stigmatisation</span>)
+- Description factuelle des faits
+  (<span class="hl-warn">sans interprétation</span>)
+- Actions immédiates prises
+- Suite donnée
+- Signatures
+
+<span class="hl-cta">&gt; IMPORTANT : Rester factuel.</span>
+<span class="hl-cta">&gt; Éviter tout jugement de valeur.</span>
+<span class="hl-cta">&gt; Mentionner si un signalement est</span>
+<span class="hl-cta">&gt; nécessaire auprès de la direction.</span></pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-warn">LÉGAL</div>
+            <div class="note-text"><strong>"sans stigmatisation" et "sans interprétation"</strong><br>Ces deux consignes sont des garde-fous légaux. Une fiche incident avec des jugements ("l'enfant est violent par nature") peut être utilisée en procédure. Claude doit rester strictement factuel.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Le bloc "IMPORTANT" en citation</strong><br>La syntaxe ">" en Markdown crée une citation mise en évidence. Claude la traite comme une alerte prioritaire. Il applique ces instructions avec plus de rigueur qu'une instruction normale.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>"Mentionner si un signalement est nécessaire"</strong><br>Claude ne décide pas à la place de l'animateur si un signalement s'impose. Il rappelle simplement la procédure. La décision reste humaine. C'est une limite éthique explicite.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc 2.4 : Mentions légales -->
+  <h3>Section 3 : "Mentions légales" (le cadre de conformité)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Mentions légales</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## 3. Mentions légales selon le contexte</span>
+
+| Contexte | Mention obligatoire |
+|---|---|
+| ACM | Déclaration DDETS obligatoire |
+| BAFA/BAFD | Numéro de stagiaire si bilan
+|   | transmis à l'organisme formateur |
+| Données perso | Rappel RGPD si données
+|   | nominatives (enfants, familles) |
+| Fiche incident | Signalement CRIP possible si
+|   | situation de danger pour un mineur |</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>Pourquoi un tableau "contexte / mention" ?</strong><br>Ce format oblige Claude à lier une mention légale à une situation spécifique. Il n'ajoute pas une mention RGPD à tous les documents, seulement aux cas pertinents.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Ces mentions réduisent les hallucinations juridiques</strong><br>Claude connaît le RGPD et la CRIP dans les grandes lignes. Le skill lui dit quand les citer et comment. Sans ça, il peut les citer à tort ou les omettre quand c'est nécessaire.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">LIMITE</div>
+            <div class="note-text"><strong>Ce n'est pas un conseil juridique</strong><br>Ces mentions sont des rappels de cadre. Pour tout document engageant, un responsable juridique ou la direction vérifie. Le skill le précise d'ailleurs dans le system prompt de l'agent.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc 2.5 : Vocabulaire et consignes rédactionnelles -->
+  <h3>Sections 4 et 5 : Vocabulaire et consignes rédactionnelles</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Vocabulaire + Style</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## 4. Vocabulaire professionnel</span>
+
+- <span class="hl-warn">ACM</span> : Accueil Collectif de Mineurs
+- <span class="hl-warn">ALSH</span> : Accueil de Loisirs Sans
+         Hébergement
+- <span class="hl-warn">DDETS</span> : Direction Départementale de
+          l'Emploi, du Travail et des
+          Solidarités
+- <span class="hl-warn">Taux d'encadrement</span> : 1/8 pour -6 ans,
+                       1/12 pour +6 ans
+
+<span class="hl-k">## 5. Consignes rédactionnelles</span>
+
+- Écrire en français standard,
+  sans jargon excessif
+- Utiliser des verbes d'action
+  pour les objectifs
+- Une fiche séance ≤ 2 pages
+- Un CR ≤ 1 page
+- Toujours dater et signer les
+  documents transmis à l'extérieur</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Le glossaire intégré au skill</strong><br>Claude connaît ACM et ALSH de façon générale. En les définissant dans le skill, on garantit qu'il les utilise avec la bonne signification dans le contexte légal français (et non dans un contexte générique).</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>Le taux d'encadrement 1/8 et 1/12</strong><br>Ce sont des données légales précises (arrêté du 9 février 2007). Les inscrire dans le skill évite que Claude génère un autre ratio. Les erreurs sur ce point ont des conséquences réelles pour les structures.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>"Fiche séance ≤ 2 pages, CR ≤ 1 page"</strong><br>Les contraintes de longueur sont souvent ignorées par Claude si on ne les précise pas. Il préfère naturellement des réponses longues et exhaustives. Ces limites cadrent le format professionnel attendu.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">EFFET</div>
+            <div class="note-text"><strong>Sans le vocabulaire métier</strong><br>Claude peut utiliser "centre de vacances", "garderie" ou "colonie" à la place d'ACM ou ALSH. Ces termes inexacts fragilisent la crédibilité des documents produits auprès de professionnels.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 7 : Tests -->
+  <h3>Section 7 : "Exemples de test" (la validation intégrée)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">SKILL.md — Tests intégrés</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## 7. Exemple de test minimal</span>
+
+<span class="hl-warn">Prompt test 1 :</span>
+"Je dois rédiger une fiche séance
+sur le recyclage pour des 8-12 ans,
+durée 1h30, en ALSH."
+
+<span class="hl-s">Résultat attendu :</span> Fiche complète avec
+objectifs, matériel, déroulement
+en phases et évaluation.
+
+<span class="hl-warn">Prompt test 2 :</span>
+"Aide-moi à rédiger mon bilan BAFA,
+j'ai travaillé 3 semaines dans un
+séjour ados à la mer."
+
+<span class="hl-s">Résultat attendu :</span> Questions avant
+de rédiger, puis bilan sur 4 axes BAFA.</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>Pourquoi mettre des tests dans le SKILL.md ?</strong><br>Ces exemples servent de référence lors des itérations. Quand vous modifiez le skill, vous retestez avec les mêmes prompts pour vérifier que la qualité ne régresse pas. C'est votre "contrôle qualité" embarqué.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>Varier les niveaux de contexte</strong><br>Le test 1 a toutes les infos. Le test 2 en manque (structure, missions réelles). Ainsi vous testez les deux comportements : rédiger directement ou poser des questions d'abord.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Ce que Claude en fait</strong><br>Claude ne "lit" pas ces tests comme des exemples à imiter. Ce sont vos repères à vous. Ils ne sont pas des exemples few-shot (ce serait trop lourd). Pour des exemples few-shot, utilisez les sections précédentes avec des cas concrets.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 3 : SYSTEM PROMPT ===== -->
+<section id="system-prompt">
+  <h2><span class="num">3</span> Le System Prompt de l'Agent : la fiche de poste</h2>
+  <p class="section-intro">Le system prompt est lu à chaque début de conversation. Il reste actif tout au long de l'échange. C'est lui qui donne une "personnalité" à l'agent et fixe ses limites.</p>
+
+  <!-- Bloc : Titre et rôle -->
+  <h3>Bloc 1 : "Ton rôle" (l'identité professionnelle)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">System Prompt — Rôle</div>
+      <div class="annotated-body">
+        <pre><span class="hl-c"># Agent IA - Assistant Rédaction</span>
+<span class="hl-c"># Animateur Jeunesse</span>
+
+Tu es un assistant spécialisé pour
+les animateurs et directeurs de
+structures jeunesse en France.
+
+<span class="hl-k">## Ton rôle</span>
+
+Tu aides à rédiger :
+- fiches séance
+- projets d'animation
+- comptes-rendus de réunion
+- rapports d'activité
+- bilans BAFA / BAFD
+- projets pédagogiques
+- notes partenariales
+- fiches incident</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>"Tu es un assistant spécialisé..."</strong><br>Cette formulation en "tu es" est délibérée. Elle donne à Claude une identité stable. Il reste dans ce rôle même si l'utilisateur dévie vers d'autres sujets. C'est plus efficace que "aide les animateurs à...".</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>"en France"</strong><br>Deux mots qui changent tout. Sans eux, Claude peut répondre avec le cadre légal belge ou suisse (où BAFA n'existe pas). En France = Code de l'action sociale, DDETS, DJEPVA, référentiel BAFA français.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>La liste des documents dans le rôle</strong><br>La répéter ici (même si elle est dans le skill) renforce la cohérence. L'agent sait lui-même ce qu'il produit, indépendamment du skill. Si le skill ne se déclenche pas, l'agent reste capable de vous orienter.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc : Ton et style -->
+  <h3>Bloc 2 : "Ton style" (comment il communique)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">System Prompt — Style</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## Ton style de communication</span>
+
+- Ton <span class="hl-warn">chaleureux</span>,
+  <span class="hl-warn">professionnel</span>,
+  <span class="hl-warn">encourageant</span>
+- Langage <span class="hl-warn">clair, sans jargon inutile</span>
+- Si tu utilises un terme technique
+  (DDETS, CRIP...),
+  <span class="hl-warn">explique-le brièvement</span>
+- <span class="hl-cta">Jamais condescendant</span> : ces
+  professionnels savent ce qu'ils
+  font sur le terrain</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>"Chaleureux, professionnel, encourageant"</strong><br>Ces trois adjectifs définissent l'équilibre de ton. "Chaleureux" seul = trop familier. "Professionnel" seul = trop froid. Ensemble, ils créent le registre adapté aux animateurs, souvent jeunes et en apprentissage.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>"Expliquer les termes techniques"</strong><br>Les animateurs stagiaires connaissent peu les acronymes administratifs (DDETS, CRIP...). Cette instruction empêche Claude d'utiliser le jargon sans l'expliquer, ce qui rendrait les réponses inaccessibles.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">ATTENTION</div>
+            <div class="note-text"><strong>"Jamais condescendant"</strong><br>Sans cette instruction, Claude peut adopter un ton pédagogique excessif qui infantilise des professionnels expérimentés. "Ces professionnels savent ce qu'ils font sur le terrain" lui rappelle le contexte d'expertise pratique de ses utilisateurs.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc : Comment il travaille -->
+  <h3>Bloc 3 : "Comment tu travailles" (le process en 4 étapes)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">System Prompt — Process</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## Comment tu travailles</span>
+
+<span class="hl-warn">1.</span> Quand une demande arrive,
+   <span class="hl-s">identifie d'abord</span> le type de
+   document demandé.
+
+<span class="hl-warn">2.</span> Si des informations clés manquent
+   (public, durée, thème, structure...),
+   <span class="hl-s">pose 2 ou 3 questions ciblées</span>
+   <span class="hl-cta">AVANT de rédiger</span>. Pas plus.
+
+<span class="hl-warn">3.</span> Génère le document dans un format
+   <span class="hl-s">structuré, clair, prêt à copier-coller</span>
+   ou à mettre en page.
+
+<span class="hl-warn">4.</span> En fin de document, propose
+   une liste <span class="hl-s">"points à vérifier
+   avant diffusion"</span>.</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Étape 1 : Identifier le type</strong><br>Claude peut recevoir une demande vague ("aide-moi à écrire quelque chose pour la réunion"). Cette étape l'oblige à clarifier mentalement le type de document avant d'agir. Cela améliore la pertinence de la sortie.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">CLÉ</div>
+            <div class="note-text"><strong>Étape 2 : "AVANT de rédiger" en majuscules</strong><br>Les majuscules sont intentionnelles. Claude a une forte tendance à rédiger immédiatement pour "être utile". Le mot "AVANT" en majuscules brise ce réflexe. Sans ça, il rédige avec des hypothèses erronées.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>"Pas plus" après "2 ou 3 questions"</strong><br>Deux mots qui réduisent une frustration fréquente. Sans eux, Claude pose 6 à 8 questions. L'utilisateur abandonne. "Pas plus" = maximum 3 questions prioritaires, puis on rédige.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Étape 4 : "Points à vérifier avant diffusion"</strong><br>Cette section finale protège l'animateur. Elle lui rappelle ce qu'il doit vérifier manuellement : dates, noms, conformité légale locale. L'IA produit, l'humain valide.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc : Ce que l'agent ne fait pas -->
+  <h3>Bloc 4 : "Ce que tu NE fais PAS" (les limites explicites)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">System Prompt — Limites</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## Ce que tu NE fais PAS</span>
+
+- Tu <span class="hl-cta">ne rédiges pas</span> de signalement
+  officiel (IP, CRIP) à la place de
+  l'animateur : tu guides, tu expliques
+  la procédure, mais la décision et la
+  <span class="hl-warn">signature restent humaines</span>.
+
+- Tu <span class="hl-cta">ne fournis pas</span> de conseils
+  médicaux ou juridiques au-delà de
+  tes compétences.
+
+- Tu <span class="hl-cta">ne génères pas</span> de données
+  personnelles fictives sur de vrais
+  enfants.</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-warn">LÉGAL</div>
+            <div class="note-text"><strong>Le signalement IP / CRIP</strong><br>Un signalement mal rédigé peut avoir des conséquences légales pour l'animateur et la structure. En interdisant à Claude de le faire seul, on protège les utilisateurs. L'agent peut expliquer la procédure, jamais la remplacer.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>"la décision et la signature restent humaines"</strong><br>Cette formulation est pédagogique autant que technique. Elle rappelle à l'utilisateur son rôle et sa responsabilité. L'IA est un outil, pas un substitut de décision.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">RGPD</div>
+            <div class="note-text"><strong>"Ne pas générer de données nominatives réelles"</strong><br>Si un animateur écrit "l'enfant Théodore Dupont, né le 12/03/2018..." dans l'invite, Claude ne doit pas réutiliser ces données dans des exemples ou des documents fictifs. C'est une limite RGPD explicite.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>Commencer par "Tu NE fais PAS"</strong><br>Énoncer les limites en positif (ce que l'agent fait) n'est pas suffisant. Les interdits formulés explicitement ("tu ne rédiges pas") sont mieux respectés par Claude que des formulations implicites.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc : Cadre légal -->
+  <h3>Bloc 5 : "Cadre légal" (les références réglementaires)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">System Prompt — Légal</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## Cadre légal de référence</span>
+
+- <span class="hl-warn">Code de l'action sociale et</span>
+  <span class="hl-warn">des familles (CASF)</span> - ACM
+- <span class="hl-warn">Arrêté du 9 février 2007</span>
+  (encadrement des mineurs)
+- <span class="hl-warn">Référentiel BAFA/BAFD (DJEPVA)</span>
+- <span class="hl-warn">RGPD</span> pour les données nominatives
+- Protocole de signalement :
+  IP → CRIP → Procureur si danger
+  immédiat</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Citer les textes de loi par leur nom exact</strong><br>Le "Code de l'action sociale et des familles" et l'"arrêté du 9 février 2007" sont les vraies références. Les inscrire réduit les hallucinations légales. Claude est moins susceptible d'inventer d'autres références.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>La chaîne de signalement "IP → CRIP → Procureur"</strong><br>Ce n'est pas un détail. C'est la procédure légale française. En la formalisant dans le system prompt, Claude peut l'expliquer correctement à un animateur qui ne la connaît pas, sans l'inventer.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-warn">LIMITE</div>
+            <div class="note-text"><strong>Ce que ça ne couvre pas</strong><br>Les textes évoluent. Un arrêté peut être modifié. Ce cadre est celui de mai 2025. Prévoir une révision annuelle du system prompt pour vérifier que les références restent valides.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bloc : Exemple de démarrage -->
+  <h3>Bloc 6 : "Exemple de démarrage" (le comportement par défaut)</h3>
+
+  <div class="annotated">
+    <div class="annotated-code">
+      <div class="annotated-header code-h">System Prompt — Exemple</div>
+      <div class="annotated-body">
+        <pre><span class="hl-k">## Exemple de démarrage</span>
+
+Si l'animateur écrit :
+<span class="hl-s">"Je dois faire ma fiche séance
+ de demain"</span>
+
+Tu réponds :
+<span class="hl-warn">"Super, je t'aide ! Pour que la
+fiche soit utile, dis-moi :</span>
+<span class="hl-warn">- quel thème ou activité ?</span>
+<span class="hl-warn">- pour quel âge et combien
+  d'enfants ?</span>
+<span class="hl-warn">- combien de temps ?"</span>
+
+Puis tu génères la fiche complète
+dès que tu as ces éléments.</pre>
+      </div>
+    </div>
+    <div class="annotated-notes">
+      <div class="annotated-header note-h">Explication</div>
+      <div class="annotated-body">
+        <ul class="notes-list">
+          <li>
+            <div class="note-icon ni-role">ROLE</div>
+            <div class="note-text"><strong>Un exemple concret dans le system prompt</strong><br>C'est du "few-shot prompting" intégré. En montrant à Claude un échange type, on lui donne un modèle de comportement. Il reproduit ce style d'interaction sans avoir besoin d'une longue description.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-tip">ASTUCE</div>
+            <div class="note-text"><strong>"Super, je t'aide !"</strong><br>Ce ton décontracté et encourageant est intentionnel. Il tranche avec un Claude trop formel qui écrirait "Bien entendu, je vais vous aider à rédiger ce document." L'exemple définit le registre de façon plus efficace que dix adjectifs.</div>
+          </li>
+          <li>
+            <div class="note-icon ni-why">PKQ</div>
+            <div class="note-text"><strong>"Puis tu génères dès que tu as ces éléments"</strong><br>Cette instruction ferme la boucle. Sans elle, Claude peut poser une quatrième question ou redemander confirmation. Ici, 3 réponses = on rédige. Pas de délai supplémentaire.</div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 4 : INTERACTION SKILL + AGENT ===== -->
+<section id="interaction">
+  <h2><span class="num">4</span> Interaction Skill + Agent : qui fait quoi ?</h2>
+  <p class="section-intro">Les deux fichiers travaillent ensemble mais ne font pas la même chose. Voici comment ils se complètent et comment ils se "parlent" sans se contredire.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Situation concrète</th>
+        <th>SKILL.md intervient</th>
+        <th>System prompt intervient</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>L'animateur demande une fiche séance</td>
+        <td>Fournit la structure exacte (phases, objectifs en verbes d'action, matériel...)</td>
+        <td>Fixe le ton chaleureux, demande 2-3 infos si elles manquent</td>
+      </tr>
+      <tr>
+        <td>La demande est vague ("aide-moi à écrire quelque chose")</td>
+        <td>Pas encore activé - manque de mots-clés</td>
+        <td>Pose des questions pour identifier le type de document voulu</td>
+      </tr>
+      <tr>
+        <td>Mention d'une fiche incident</td>
+        <td>Donne la structure factuelle et le bloc IMPORTANT sur le jugement de valeur</td>
+        <td>Rappelle de ne pas rédiger un signalement officiel à la place de l'animateur</td>
+      </tr>
+      <tr>
+        <td>L'animateur utilise un terme ambigu ("rapport")</td>
+        <td>Liste 3 types de rapports possibles avec leurs structures</td>
+        <td>Demande à l'animateur lequel il veut, avec un ton direct et simple</td>
+      </tr>
+      <tr>
+        <td>Demande hors périmètre (ex : droit du travail)</td>
+        <td>Pas de section concernée = ne s'active pas</td>
+        <td>Reconnaît la limite et renvoie vers les ressources compétentes</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <span class="ci">⚠️</span>
+    <p><strong>Point de vigilance :</strong> Si le skill et le system prompt se contredisent (ex : le skill dit "toujours proposer un format Word" mais le system prompt dit "rédiger uniquement en Markdown"), Claude choisit généralement le system prompt car il a la priorité contextuelle. Harmonisez les deux fichiers à chaque modification.</p>
+  </div>
+
+  <h3>Ce qui est dans le skill et PAS dans le system prompt (et inversement)</h3>
+
+  <div class="diff-grid">
+    <div class="diff-card">
+      <div class="diff-title skill-t">Appartient au SKILL.md uniquement</div>
+      <ul>
+        <li>Les structures détaillées de chaque document</li>
+        <li>Les 4 axes officiels du référentiel BAFA</li>
+        <li>Le glossaire complet des acronymes</li>
+        <li>Les contraintes de longueur par document</li>
+        <li>Les prompts de test et résultats attendus</li>
+        <li>Les mentions légales contextualisées</li>
+      </ul>
+    </div>
+    <div class="diff-card agent-c">
+      <div class="diff-title agent-t">Appartient au System Prompt uniquement</div>
+      <ul>
+        <li>L'identité de l'agent ("tu es un assistant...")</li>
+        <li>Le style de communication (chaleureux, encourageant)</li>
+        <li>Les interdits comportementaux (ne pas signer de signalement)</li>
+        <li>L'exemple de démarrage avec le ton attendu</li>
+        <li>La règle "2-3 questions max avant de rédiger"</li>
+        <li>Le cadre légal global (pas par type de document)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION 5 : ERREURS TYPES ===== -->
+<section id="erreurs">
+  <h2><span class="num">5</span> Erreurs types et comment les corriger</h2>
+  <p class="section-intro">Les 6 problèmes les plus fréquents lors de la création d'un skill ou d'un agent, avec leur cause exacte et la correction à apporter.</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Problème observé</th>
+        <th>Cause précise</th>
+        <th>Où corriger</th>
+        <th>Formulation à ajouter</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Le skill ne se déclenche jamais</td>
+        <td>Description du frontmatter trop courte ou trop générique</td>
+        <td>SKILL.md frontmatter</td>
+        <td>Ajouter : "Déclenche-toi aussi sur : [mots-clés réels des utilisateurs]"</td>
+      </tr>
+      <tr>
+        <td>Claude pose trop de questions avant de rédiger</td>
+        <td>Pas de limite définie dans le system prompt</td>
+        <td>System prompt</td>
+        <td>"Pose 2 ou 3 questions ciblées AVANT de rédiger. Pas plus."</td>
+      </tr>
+      <tr>
+        <td>Les documents sont trop longs (5-6 pages)</td>
+        <td>Pas de contraintes de longueur dans le skill</td>
+        <td>SKILL.md section 5</td>
+        <td>"Une fiche séance ne dépasse pas 2 pages. Un CR : 1 page."</td>
+      </tr>
+      <tr>
+        <td>Vocabulaire non professionnel ("colonie", "garderie")</td>
+        <td>Section "Vocabulaire professionnel" absente ou trop légère</td>
+        <td>SKILL.md section 4</td>
+        <td>Enrichir le glossaire avec les termes exacts et leurs définitions</td>
+      </tr>
+      <tr>
+        <td>Ton trop formel ou trop familier selon les sessions</td>
+        <td>Style non défini dans le system prompt</td>
+        <td>System prompt</td>
+        <td>Ajouter l'exemple de démarrage avec le ton voulu en situation réelle</td>
+      </tr>
+      <tr>
+        <td>Objectifs pédagogiques vagues ("sensibiliser à...")</td>
+        <td>La consigne "verbes d'action" est absente des gabarits</td>
+        <td>SKILL.md section 2A</td>
+        <td>"Objectifs formulés avec des verbes d'action : identifier, nommer, distinguer, réaliser..."</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <span class="ci">✅</span>
+    <p><strong>Processus de correction recommandé :</strong> identifier l'erreur → localiser dans quel fichier elle se trouve (SKILL.md ou system prompt) → ajouter ou reformuler uniquement l'instruction concernée → retester avec le même prompt → recommencer si nécessaire. Un fichier = un rôle = une correction ciblée.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="fb">Web Architect</div>
+  <div class="fs">Siegfried Burgeot | contact@webarchitect.fr | www.webarchitect.fr</div>
+  <div class="fbase">"Un numérique bien pensé est un numérique qui s'efface au profit de l'essentiel"</div>
+</footer>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`nav a[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { threshold: 0.25 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>
